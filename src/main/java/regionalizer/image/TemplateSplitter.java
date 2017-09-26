@@ -70,43 +70,57 @@ public class TemplateSplitter
                         continue;
                     }
 
-                    for (int z = 0; z < 512; z++)
+                    int x = 0;
+                    int z = 0;
+                    int w = 0;
+                    int h = 0;
+                    int worldX = startX;
+                    int worldZ = startZ;
+                    int zeroes[] = new int[512 * 512];
+
+                    // Horizontal area that is outside the input template image (above)
+                    if (worldZ < templateWorldStartZ)
                     {
-                        final int worldZ = startZ + z;
+                        h = templateWorldStartZ - worldZ;
+                        regionImage.setRGB(x, z, 512, h, zeroes, 0, 512);
+                        worldZ += h;
+                        z += h;
+                    }
 
-                        // Horizontal lines that are outside the input template image (above or below)
-                        if (worldZ < templateWorldStartZ || worldZ >= templateWorldEndZExc)
-                        {
-                            for (int x = 0; x < 512; x++)
-                            {
-                                regionImage.setRGB(x, z, 0);
-                            }
-                        }
-                        // Horizontal lines that are within the input template image
-                        else
-                        {
-                            int x = 0;
-                            int worldX = startX;
+                    h = Math.min(512 - z, templateWorldEndZExc - worldZ);
 
-                            // The area on the left side inside the first region template, that is outside the input template area
-                            for ( ; worldX < templateWorldStartX; x++, worldX++)
-                            {
-                                regionImage.setRGB(x, z, 0);
-                            }
+                    // The area on the left side inside the first region template, that is outside the input template area
+                    if (worldX < templateWorldStartX)
+                    {
+                        w = templateWorldStartX - worldX;
+                        regionImage.setRGB(x, z, w, h, zeroes, 0, 512);
+                        worldX += w;
+                        x += w;
+                        // Don't increment z yet
+                    }
 
-                            // Normal area that is inside the input template image
-                            for ( ; x < 512 && worldX < templateWorldEndXExc; x++, worldX++)
-                            {
-                                final int color = inputImage.getRGB(worldX - templateWorldStartX, worldZ - templateWorldStartZ);
-                                regionImage.setRGB(x, z, color);
-                            }
+                    // Normal area that is inside the input template image
+                    w = Math.min(512 - x, templateWorldEndXExc - worldX);
+                    int[] data = new int[512 * 512];
+                    inputImage.getRGB(worldX - templateWorldStartX, worldZ - templateWorldStartZ, w, h, data, 0, 512);
+                    regionImage.setRGB(x, z, w, h, data, 0, 512);
+                    x += w;
 
-                            // The area on the right side inside the last region template, that is outside the input template area
-                            for ( ; x < 512; x++)
-                            {
-                                regionImage.setRGB(x, z, 0);
-                            }
-                        }
+                    // The area on the right side inside the first region template, that is outside the input template area
+                    if (x < 512)
+                    {
+                        w = 512 - x;
+                        regionImage.setRGB(x, z, w, h, zeroes, 0, 512);
+                        // No need to increment x anymore
+                    }
+
+                    z += h;
+
+                    // Horizontal area that is outside the input template image (below)
+                    if (z < 512)
+                    {
+                        h = 512 - z;
+                        regionImage.setRGB(0, z, 512, h, zeroes, 0, 512);
                     }
 
                     ImageIO.write(regionImage, "png", output);

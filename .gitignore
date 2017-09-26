@@ -1,4 +1,3 @@
 build/
 .gradle/
-images/
-output/
+testing/

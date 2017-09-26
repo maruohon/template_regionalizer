@@ -3,7 +3,7 @@
 apply plugin: 'java'
 
 group = 'regionalizer' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'regionalizer'
+archivesBaseName = 'regionalizer-1.0'
 
 // Need this here so eclipse task generates correctly.
 sourceCompatibility = 1.8
